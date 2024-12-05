@@ -35,6 +35,7 @@ var nativeFilter = arrayProto.filter;
 var nativeSlice = arrayProto.slice;
 var nativeMap = arrayProto.map;
 var nativeReduce = arrayProto.reduce;
+var protoKey = '__proto__';
 
 // Avoid assign to an exported variable, for transforming to cjs.
 var methods = {};
@@ -97,7 +98,8 @@ export function clone(source) {
     else if (!BUILTIN_OBJECT[typeStr] && !isPrimitive(source) && !isDom(source)) {
         result = {};
         for (var key in source) {
-            if (source.hasOwnProperty(key)) {
+            // Check if key is __proto__ to avoid prototype pollution
+            if (source.hasOwnProperty(key) && key !== protoKey) {
                 result[key] = clone(source[key]);
             }
         }
@@ -120,7 +122,8 @@ export function merge(target, source, overwrite) {
     }
 
     for (var key in source) {
-        if (source.hasOwnProperty(key)) {
+        // Check if key is __proto__ to avoid prototype pollution
+        if (source.hasOwnProperty(key) && key !== protoKey) {
             var targetProp = target[key];
             var sourceProp = source[key];
 
@@ -169,7 +172,8 @@ export function mergeAll(targetAndSources, overwrite) {
  */
 export function extend(target, source) {
     for (var key in source) {
-        if (source.hasOwnProperty(key)) {
+        // Check if key is __proto__ to avoid prototype pollution
+        if (source.hasOwnProperty(key) && key !== protoKey) {
             target[key] = source[key];
         }
     }
@@ -185,6 +189,7 @@ export function extend(target, source) {
 export function defaults(target, source, overlay) {
     for (var key in source) {
         if (source.hasOwnProperty(key)
+            && key !== protoKey
             && (overlay ? source[key] != null : target[key] == null)
         ) {
             target[key] = source[key];
